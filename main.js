@@ -18,68 +18,88 @@
             }
         }
 
-        // --- 3. RENDER TABLE (ĐÃ CÓ XỬ LÝ ẢNH & LINK) ---
-        function renderTable() {
-            const tableBody = document.getElementById('tableBody');
-            tableBody.innerHTML = "";
+        // --- 3. HÀM RENDER BẢNG (CẬP NHẬT: HIỂN THỊ CẢ ẢNH CATEGORY) ---
+    function renderTable() {
+        const tableBody = document.getElementById('tableBody');
+        tableBody.innerHTML = "";
 
-            const startIndex = (currentPage - 1) * itemsPerPage;
-            const endIndex = startIndex + itemsPerPage;
-            const dataToDisplay = currentData.slice(startIndex, endIndex);
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const dataToDisplay = currentData.slice(startIndex, endIndex);
 
-            if (dataToDisplay.length === 0) {
-                tableBody.innerHTML = "<tr><td colspan='5' style='text-align:center; color:red'>Không tìm thấy dữ liệu</td></tr>";
-                renderPagination();
-                return;
-            }
-
-            let html = "";
-            for (const item of dataToDisplay) {
-                
-                // Xử lý dữ liệu ảnh (Clean JSON rác)
-                let processedImages = item.images;
-                if (typeof processedImages === 'string') {
-                    try { processedImages = JSON.parse(processedImages); } catch (e) { processedImages = []; }
-                }
-                if (Array.isArray(processedImages) && processedImages.length > 0 && typeof processedImages[0] === 'string' && processedImages[0].startsWith('[')) {
-                     try { processedImages = JSON.parse(processedImages[0]); } catch (e) {}
-                }
-
-                // Tạo HTML ảnh
-                let imagesHtml = `<div class="img-list">`;
-                if (Array.isArray(processedImages) && processedImages.length > 0) {
-                    processedImages.forEach(imgUrl => {
-                        let cleanUrl = imgUrl.replace(/["\[\]]/g, '');
-                        if (cleanUrl.startsWith('http')) {
-                            // Link bao ngoài ảnh: Nếu ảnh lỗi -> Hiện ô đỏ -> Bấm vào ô đỏ vẫn mở link gốc
-                            imagesHtml += `
-                                <a href="${cleanUrl}" target="_blank" title="Click mở link gốc">
-                                    <img src="${cleanUrl}" 
-                                         class="product-img" 
-                                         alt="img"
-                                         onerror="this.onerror=null; this.src='https://placehold.co/50/ff0000/FFFFFF?text=Link';">
-                                </a>
-                            `;
-                        }
-                    });
-                } else {
-                    imagesHtml += `<span style="color:gray; font-size:12px">No Image</span>`;
-                }
-                imagesHtml += `</div>`;
-
-                html += `
-                    <tr>
-                        <td>${item.id}</td>
-                        <td>${item.title}</td>
-                        <td>$${item.price}</td>
-                        <td>${item.category ? item.category.name : 'N/A'}</td>
-                        <td>${imagesHtml}</td>
-                    </tr>
-                `;
-            }
-            tableBody.innerHTML = html;
+        if (dataToDisplay.length === 0) {
+            tableBody.innerHTML = "<tr><td colspan='5' style='text-align:center; color:red'>Không tìm thấy dữ liệu</td></tr>";
             renderPagination();
+            return;
         }
+
+        let html = "";
+        for (const item of dataToDisplay) {
+            
+            // --- BƯỚC 1: TẠO MỘT DANH SÁCH CHỨA TẤT CẢ ẢNH ---
+            let allImages = [];
+
+            // 1.1. Lấy ảnh Category (nếu có) đưa vào đầu danh sách
+            if (item.category && item.category.image) {
+                allImages.push(item.category.image);
+            }
+
+            // 1.2. Xử lý và lấy danh sách ảnh sản phẩm (item.images)
+            let productImages = item.images;
+            
+            // Fix lỗi JSON rác của API
+            if (typeof productImages === 'string') {
+                try { productImages = JSON.parse(productImages); } catch (e) { productImages = []; }
+            }
+            if (Array.isArray(productImages) && productImages.length > 0 && typeof productImages[0] === 'string' && productImages[0].startsWith('[')) {
+                 try { productImages = JSON.parse(productImages[0]); } catch (e) {}
+            }
+
+            // Gộp ảnh sản phẩm vào danh sách chung
+            if (Array.isArray(productImages)) {
+                allImages = allImages.concat(productImages);
+            }
+
+            // --- BƯỚC 2: TẠO HTML TỪ DANH SÁCH TỔNG HỢP ---
+            let imagesHtml = `<div class="img-list">`;
+            
+            if (allImages.length > 0) {
+                allImages.forEach((imgUrl, index) => {
+                    // Clean URL
+                    let cleanUrl = imgUrl.replace(/["\[\]]/g, '');
+                    
+                    if (cleanUrl.startsWith('http')) {
+                        // Logic hiển thị: Ảnh đầu tiên (index 0) thường là Category, ta có thể thêm viền màu khác nếu thích
+                        // Ở đây tôi để hiển thị giống nhau
+                        imagesHtml += `
+                            <a href="${cleanUrl}" target="_blank" title="${index === 0 ? 'Ảnh Category' : 'Ảnh sản phẩm'}">
+                                <img src="${cleanUrl}" 
+                                     class="product-img" 
+                                     alt="img"
+                                     onerror="this.onerror=null; this.src='https://placehold.co/50/ff0000/FFFFFF?text=Link';">
+                            </a>
+                        `;
+                    }
+                });
+            } else {
+                imagesHtml += `<span style="color:gray; font-size:12px">No Image</span>`;
+            }
+            imagesHtml += `</div>`;
+            // -------------------------------
+
+            html += `
+                <tr>
+                    <td>${item.id}</td>
+                    <td>${item.title}</td>
+                    <td>$${item.price}</td>
+                    <td>${item.category ? item.category.name : 'N/A'}</td>
+                    <td>${imagesHtml}</td>
+                </tr>
+            `;
+        }
+        tableBody.innerHTML = html;
+        renderPagination();
+    }
 
         // --- 4. PAGINATION ---
         function renderPagination() {
