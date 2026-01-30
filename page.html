@@ -4,32 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản lý sản phẩm</title>
+    <meta name="referrer" content="no-referrer">
+    
     <style>
         body { font-family: sans-serif; padding: 20px; }
         
-        /* --- YÊU CẦU: CSS 1 dòng đen, 1 dòng trắng --- */
         table { width: 100%; border-collapse: collapse; margin-top: 20px; border: 1px solid #ddd; }
         th { background-color: #f4f4f4; padding: 10px; cursor: pointer; user-select: none; border: 1px solid #ddd;}
         td { padding: 10px; border: 1px solid #ddd; vertical-align: middle; }
 
-        /* Dòng lẻ: Màu trắng, chữ đen */
-        tbody tr:nth-child(odd) {
-            background-color: #ffffff;
-            color: #000000;
-        }
-        /* Dòng chẵn: Màu đen (hoặc xám đậm), chữ trắng */
-        tbody tr:nth-child(even) {
-            background-color: #222222;
-            color: #ffffff;
-        }
+        /* Zebra striping */
+        tbody tr:nth-child(odd) { background-color: #ffffff; color: #000000; }
+        tbody tr:nth-child(even) { background-color: #222222; color: #ffffff; }
 
-        /* --- YÊU CẦU: Hiển thị toàn bộ hình --- */
         .img-list { display: flex; gap: 5px; flex-wrap: wrap; }
+        
+        /* CSS cho ảnh và nút Link thay thế */
         .product-img {
             width: 50px; height: 50px; 
             object-fit: cover; border-radius: 4px; border: 1px solid #ccc;
+            display: block; /* Giúp căn chỉnh tốt hơn */
         }
-
+        
         /* Control Bar */
         .controls { display: flex; gap: 15px; margin-bottom: 20px; align-items: center; flex-wrap: wrap; }
         input[type="text"] { padding: 8px; width: 300px; }
@@ -50,7 +46,6 @@
 
     <div class="controls">
         <input type="text" id="searchInput" placeholder="Tìm kiếm theo title..." oninput="handleSearch()">
-        
         <label>Hiển thị:</label>
         <select id="pageSizeSelect" onchange="handlePageSizeChange()">
             <option value="5">5 dòng</option>
@@ -69,11 +64,12 @@
                 <th>Images</th>
             </tr>
         </thead>
-        <tbody id="tableBody">
-            </tbody>
+        <tbody id="tableBody"></tbody>
     </table>
 
     <div class="pagination" id="pagination"></div>
-<script src="main.js"></script>
+
+    <script src = main.js></script>
+    </script>
 </body>
 </html>
